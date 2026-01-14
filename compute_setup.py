@@ -23,7 +23,7 @@ Usage Examples:
     # List available config files
     python compute_setup.py --list
 
-For detailed configuration help, see CONFIG_GUIDE.md
+For detailed configuration help, see README.md
 """
 from __future__ import annotations
 
@@ -107,8 +107,12 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
     """Build the compute configuration dictionary from loaded config."""
     cluster = cfg["cluster"]
     auth = cfg["authentication"]
-    registry = cfg["registry"]
+    registry = cfg.get("registry") or {}
     network = cfg["network"]
+
+    registry_domain = registry.get("domain", "hub.dataloop.ai")
+    registry_faas_folder = registry.get("faasFolder", "customerhub")
+    registry_bootstrap_folder = registry.get("bootstrapFolder", "customerhub")
 
     config: Dict[str, Any] = {
         "authentication": {
@@ -127,9 +131,9 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
                 "serviceAccountName": cluster.get("serviceAccountName", "faas"),
                 "securityContext": cfg.get("securityContext", {}),
                 "registry": {
-                    "domain": registry["domain"],
-                    "faasFolder": registry["faasFolder"],
-                    "bootstrapFolder": registry["bootstrapFolder"],
+                    "domain": registry_domain,
+                    "faasFolder": registry_faas_folder,
+                    "bootstrapFolder": registry_bootstrap_folder,
                 },
                 "defaultResources": cfg.get("defaultResources", {}),
                 "internalRequestsUrl": network.get("internalRequestsUrl"),
@@ -161,7 +165,7 @@ def validate_config(cfg: Dict[str, Any], compute_cfg: Dict[str, Any]) -> None:
             "Missing required values in config file:\n  - "
             + "\n  - ".join(missing)
             + "\n\nPlease edit your config file and re-run."
-            + "\nSee CONFIG_GUIDE.md for detailed instructions."
+            + "\nSee README.md for detailed instructions."
         )
 
     # Validate endpoint format
@@ -185,7 +189,7 @@ def validate_config(cfg: Dict[str, Any], compute_cfg: Dict[str, Any]) -> None:
             "Missing mandatory plugins in config file:\n  - "
             + "\n  - ".join(f"plugins: {name}" for name in missing_plugins)
             + "\n\nPlease add them under the top-level 'plugins' array."
-            + "\nSee CONFIG_GUIDE.md → Plugins for examples."
+            + "\nSee README.md → Plugins for examples."
         )
 
     # Validate nodePools.dlTypes values
@@ -215,7 +219,7 @@ def validate_config(cfg: Dict[str, Any], compute_cfg: Dict[str, Any]) -> None:
             + "\n  - ".join(invalid_dl_types_by_pool)
             + "\n\nAllowed values:\n  - "
             + allowed_list
-            + "\n\nSee CONFIG_GUIDE.md → Node Pools for examples."
+            + "\n\nSee README.md → Node Pools for examples."
         )
 
 
@@ -321,7 +325,7 @@ Examples:
   %(prog)s -c configs/config-prod.json        # Short form
   %(prog)s --list                             # List available configs
 
-For detailed configuration help, see CONFIG_GUIDE.md
+For detailed configuration help, see README.md
         """
     )
     
@@ -375,5 +379,5 @@ if __name__ == "__main__":
         print("  • Ensure cluster.endpoint is a valid HTTPS URL")
         print("  • Ensure authentication.token is provided")
         print("  • Verify network/proxy settings if required")
-        print("  • See CONFIG_GUIDE.md for detailed help")
+        print("  • See README.md for detailed help")
         raise

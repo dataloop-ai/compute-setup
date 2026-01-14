@@ -192,11 +192,18 @@ kubectl get secret faas -n faas -o jsonpath='{.data.token}' | base64 --decode
 }
 ```
 
+This section is **optional**. If omitted, defaults are used.
+
 | Field | Required | Description | Default Value |
 |-------|----------|-------------|---------------|
-| `domain` | ✅ Yes | Container registry domain | `hub.dataloop.ai` |
-| `faasFolder` | ✅ Yes | Folder/repository for FaaS images | `customerhub` |
-| `bootstrapFolder` | ✅ Yes | Folder/repository for bootstrap images | `customerhub` |
+| `domain` | No | Container registry domain | `hub.dataloop.ai` |
+| `faasFolder` | No | Folder/repository for FaaS images | `customerhub` |
+| `bootstrapFolder` | No | Folder/repository for bootstrap images | `customerhub` |
+
+**Example: omit registry (use defaults)**
+```json
+"registry": null
+```
 
 **Common registry domains:**
 - Dataloop: `hub.dataloop.ai`
@@ -658,11 +665,6 @@ Before running the script, verify:
   "authentication": {
     "ca": "LS0tLS1CRUdJTi...",
     "token": "eyJhbGciOiJSUzI1NiIs..."
-  },
-  "registry": {
-    "domain": "hub.dataloop.ai",
-    "faasFolder": "customerhub",
-    "bootstrapFolder": "customerhub"
   },
   "network": {
     "internalRequestsUrl": null,
