@@ -1,0 +1,86 @@
+{
+  "_comment": "Compute Setup Configuration - Edit values below to match your environment",
+
+  "organization": {
+    "orgId": "{ORG_ID}",
+    "env": "{ENV}"
+  },
+
+  "cluster": {
+    "name": "{CLUSTER_NAME}",
+    "endpoint": "{CLUSTER_ENDPOINT}",
+    "kubernetesVersion": "{KUBERNETES_VERSION}",
+    "provider": "aws",
+    "defaultNamespace": "{DEFAULT_NAMESPACE}"
+  },
+
+  "authentication": {
+    "ca": "{CA_CERTIFICATE}",
+    "token": "{TOKEN}"
+  },
+
+  "registry": {
+    "domain": "hub.dataloop.ai",
+    "faasFolder": "customerhub",
+    "bootstrapFolder": "customerhub"
+  },
+
+  "network": {
+    "internalRequestsUrl": "{INTERNAL_REQUESTS_URL}",
+    "environmentVariables": [
+      {"name": "LINK_ITEM_URL_OVERRIDE", "value": "{LINK_ITEM_URL_OVERRIDE}"}
+    ]
+  },
+
+  "volumes": [
+    {
+      "name": "{VOLUME_NAME}",
+      "mountPath": "{MOUNT_PATH}",
+      "hostPath": {
+        "path": "{HOST_PATH_ON_NODE}",
+        "type": "DirectoryOrCreate"
+      }
+    }
+  ],
+
+  "plugins": [
+    {"name": "monitoring"},
+    {"name": "scaler"}
+  ],
+
+  "nodePools": [
+    {
+      "name": "general-pool",
+      "isDlTypeDefault": true,
+      "dlTypes": ["regular-xs"],
+      "tolerations": [
+        {
+          "key": "{TOLERATION_KEY}",
+          "operator": "{TOLERATION_OPERATOR}",
+          "value": "{TOLERATION_VALUE}",
+          "effect": "{TOLERATION_EFFECT}"
+        }
+      ],
+      "description": "{DESCRIPTION}",
+      "nodeSelector": {},
+      "preemptible": false
+    }
+  ],
+
+  "defaultResources": {
+    "requests": {
+      "cpu": "{REQUESTS_CPU}",
+      "memory": "{REQUESTS_MEMORY}"
+    },
+    "limits": {
+      "cpu": "{LIMITS_CPU}",
+      "memory": "{LIMITS_MEMORY}"
+    }
+  },
+
+  "securityContext": {},
+
+  "output": {
+    "base64ConfigFile": "base64_config.txt"
+  }
+}
