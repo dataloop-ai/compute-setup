@@ -43,16 +43,100 @@ Before you begin, make sure you have:
 - [ ] **Python 3.8+** installed
 - [ ] **dtlpy SDK** installed (`pip install dtlpy`)
 
+### ServiceAccount permissions (RBAC)
+
+In most setups, Dataloop needs **namespace-scoped** permissions to create/update/delete and watch common workload resources (pods, services, deployments, jobs, HPA, configmaps/secrets, PVCs), and (optionally) do pod exec.
+
+**Minimal namespace-scoped RBAC example (Role + RoleBinding):**
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: <NAMESPACE>
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: <SERVICE_ACCOUNT_NAME>
+  namespace: <NAMESPACE>
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dataloop-minimal-role
+  namespace: <NAMESPACE>
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/exec
+      - services
+      - endpoints
+      - configmaps
+      - events
+      - secrets
+      - persistentvolumeclaims
+      - serviceaccounts
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - deployments/scale
+      - daemonsets
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+
+  - apiGroups: ["autoscaling"]
+    resources:
+      - horizontalpodautoscalers
+      - horizontalpodautoscalers/status
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+    verbs: ["create", "get", "list", "watch", "delete", "patch"]
+
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+    verbs: ["get", "list", "watch", "create", "update", "delete", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dataloop-minimal-rolebinding
+  namespace: <NAMESPACE>
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dataloop-minimal-role
+subjects:
+  - kind: ServiceAccount
+    name: <SERVICE_ACCOUNT_NAME>
+    namespace: <NAMESPACE>
+```
+
+**When do you need ClusterRole / cluster-scoped permissions?**
+- If you want Dataloop to manage resources **across multiple namespaces**, use a `ClusterRole` + `ClusterRoleBinding` (or create the above Role/RoleBinding in each namespace).
+- If you want Dataloop to **create namespaces**, you must grant access to the cluster-scoped `namespaces` resource.
+
 ---
 
 ## Quick Start
 
-1. Copy the template file:
+1. Clone this repo:
    ```bash
-   cp configs/config-template.json configs/config-myenv.json
+   git clone https://github.com/dataloop-ai/compute-setup.git
+   cd compute-setup
    ```
 
-2. Edit the new file with your values (see field reference below)
+2. Create a config file and edit it with your values (see field reference below):
+   ```bash
+   cp config.json configs/config-myenv.json
+   ```
 
 3. Run the setup:
    ```bash
@@ -74,7 +158,7 @@ Before you begin, make sure you have:
 
 | Field | Required | Description | How to Find |
 |-------|----------|-------------|-------------|
-| `orgId` | ✅ Yes | Your Dataloop organization ID | Go to Dataloop Console → Settings → Organization → Copy the ID |
+| `orgId` | ✅ Yes | Your Dataloop organization ID | In Dataloop Console: open any project → left panel **Organization Projects** → copy the org id from the URL: `{your-env}.dataloop.ai/iam/{your-org-id}/projects` |
 | `env` | ✅ Yes | Dataloop environment | Use `rc` for staging, `prod` for production |
 
 **Example values for `env`:**
