@@ -36,11 +36,25 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import dtlpy as dl
+import pkg_resources
 
 # Script directory and default paths
 SCRIPT_DIR = Path(__file__).parent
 DEFAULT_CONFIG_FILE = SCRIPT_DIR / "config.json"
 CONFIGS_DIR = SCRIPT_DIR / "configs"
+
+MIN_DTLpy_VERSION = "1.115.44"
+
+
+def validate_dtlpy_version() -> None:
+    """Fail fast if the installed dtlpy SDK is older than required."""
+    current = getattr(dl, "__version__", "0.0.0")
+    if pkg_resources.parse_version(current) < pkg_resources.parse_version(MIN_DTLpy_VERSION):
+        raise RuntimeError(
+            f"dtlpy SDK version {current} is too old. "
+            f"Minimum required version is {MIN_DTLpy_VERSION}. "
+            f"Please upgrade: pip install \"dtlpy>={MIN_DTLpy_VERSION}\""
+        )
 
 
 def list_available_configs() -> List[Path]:
@@ -109,6 +123,7 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
     auth = cfg["authentication"]
     registry = cfg.get("registry") or {}
     network = cfg["network"]
+    metadata = cfg.get("metadata") or {}
 
     registry_domain = registry.get("domain", "hub.dataloop.ai")
     registry_faas_folder = registry.get("faasFolder", "customerhub")
@@ -124,7 +139,7 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "kubernetesVersion": cluster["kubernetesVersion"],
             "name": cluster["name"],
             "nodePools": cfg["nodePools"],
-            "metadata": {},
+            "metadata": metadata,
             "settings": {"defaultNamespace": cluster["defaultNamespace"]},
             "deploymentConfiguration": {
                 "volumes": cfg.get("volumes", []),
@@ -178,6 +193,20 @@ def validate_config(cfg: Dict[str, Any], compute_cfg: Dict[str, Any]) -> None:
         print("⚠️  Warning: authentication.ca is empty. Set it if your cluster requires a CA certificate.")
     if not conf.get("deploymentConfiguration", {}).get("volumes"):
         print("⚠️  Warning: No volumes defined. Add volumes if your workloads need storage.")
+
+    # Validate metadata (optional)
+    if "metadata" in cfg and cfg.get("metadata") is not None and not isinstance(cfg.get("metadata"), dict):
+        raise ValueError("metadata must be an object (JSON dict) when provided")
+
+    metadata = cfg.get("metadata") or {}
+    serve_agent_service_type = metadata.get("serveAgentServiceType")
+    if serve_agent_service_type is not None:
+        allowed_service_types = {"ClusterIP", "LoadBalancer"}
+        if serve_agent_service_type not in allowed_service_types:
+            raise ValueError(
+                "Invalid metadata.serveAgentServiceType: "
+                f"{serve_agent_service_type}. Allowed values: {sorted(allowed_service_types)}"
+            )
 
     # Validate mandatory plugins
     plugins = cfg.get("plugins", [])
@@ -256,6 +285,8 @@ def set_default_driver(compute_name: str, org_id: str, update_existing_services:
 
 def main(config_path: str) -> None:
     """Main execution flow."""
+    validate_dtlpy_version()
+
     # Load configuration
     print(f"\n📂 Loading configuration from: {config_path}")
     cfg = load_config(config_path)

@@ -14,13 +14,14 @@ This guide explains how to configure the compute setup for your Kubernetes clust
    - [Cluster Settings](#2-cluster-settings)
    - [Authentication](#3-authentication)
    - [Registry Settings](#4-registry-settings)
-   - [Network Settings](#5-network-settings)
-   - [Volumes](#6-volumes)
-   - [Plugins](#7-plugins)
-   - [Node Pools](#8-node-pools)
-   - [Default Resources](#9-default-resources)
-   - [Security Context](#10-security-context)
-   - [Output Settings](#11-output-settings)
+   - [Metadata (optional)](#5-metadata-optional)
+   - [Network Settings](#6-network-settings)
+   - [Volumes](#7-volumes)
+   - [Plugins](#8-plugins)
+   - [Node Pools](#9-node-pools)
+   - [Default Resources](#10-default-resources)
+   - [Security Context](#11-security-context)
+   - [Output Settings](#12-output-settings)
 5. [Running the Script](#running-the-script)
 6. [Multiple Namespaces](#multiple-namespaces)
 7. [Troubleshooting](#troubleshooting)
@@ -41,7 +42,7 @@ Before you begin, make sure you have:
 - [ ] **Kubernetes cluster** with API access
 - [ ] **Service Account** with appropriate permissions in your cluster
 - [ ] **Python 3.8+** installed
-- [ ] **dtlpy SDK** installed (`pip install dtlpy`)
+- [ ] **dtlpy SDK** installed (minimum version `1.115.44`): `pip install "dtlpy>=1.115.44"`
 
 ### ServiceAccount permissions (RBAC)
 
@@ -298,7 +299,25 @@ This section is **optional**. If omitted, defaults are used.
 
 ---
 
-### 5. Network Settings
+### 5. Metadata (optional)
+
+This section is **optional** and is passed as-is into the compute `config.metadata`.
+
+**Serve Agent (optional)**
+
+```json
+"metadata": {
+  "serveAgentEndpoint": "{endpoint to reach the serve-agent}",
+  "serveAgentIP": "{serve-agent ip (bootstrap will apply the serve-agent with that ip)}",
+  "serveAgentServiceType": "ClusterIP"
+}
+```
+
+`serveAgentServiceType` supported values: `ClusterIP`, `LoadBalancer`.
+
+---
+
+### 6. Network Settings
 
 ```json
 "network": {
@@ -335,7 +354,7 @@ For custom settings:
 
 ---
 
-### 6. Volumes
+### 7. Volumes
 
 ```json
 "volumes": [
@@ -455,7 +474,7 @@ Each volume must include `name` and `mountPath`, and should define **exactly one
 
 ---
 
-### 7. Plugins
+### 8. Plugins
 
 ```json
 "plugins": [
@@ -497,7 +516,7 @@ The following plugins are supported. For Dataloop compute setup, **`monitoring`*
 
 ---
 
-### 8. Node Pools
+### 9. Node Pools
 
 ```json
 "nodePools": [
@@ -572,7 +591,7 @@ The following plugins are supported. For Dataloop compute setup, **`monitoring`*
 
 ---
 
-### 9. Default Resources
+### 10. Default Resources
 
 ```json
 "defaultResources": {
@@ -607,7 +626,7 @@ The following plugins are supported. For Dataloop compute setup, **`monitoring`*
 
 ---
 
-### 10. Security Context
+### 11. Security Context
 
 ```json
 "securityContext": {}
@@ -633,7 +652,7 @@ Leave empty `{}` for default security settings, or configure:
 
 ---
 
-### 11. Output Settings
+### 12. Output Settings
 
 ```json
 "output": {

@@ -25,6 +25,8 @@
     "bootstrapFolder": "customerhub"
   },
 
+  "metadata": {},
+
   "network": {
     "internalRequestsUrl": "{INTERNAL_REQUESTS_URL}",
     "environmentVariables": [
