@@ -44,7 +44,7 @@ CONFIGS_DIR = SCRIPT_DIR / "configs"
 
 
 def list_available_configs() -> List[Path]:
-    """List all available config files in the configs directory."""
+    """List all available config files in the configs directory!"""
     configs = []
     
     # Check main config.json
