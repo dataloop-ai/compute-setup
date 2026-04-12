@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import dtlpy as dl
-import pkg_resources
+from packaging.version import Version
 
 # Script directory and default paths
 SCRIPT_DIR = Path(__file__).parent
@@ -49,7 +49,7 @@ MIN_DTLpy_VERSION = "1.115.44"
 def validate_dtlpy_version() -> None:
     """Fail fast if the installed dtlpy SDK is older than required."""
     current = getattr(dl, "__version__", "0.0.0")
-    if pkg_resources.parse_version(current) < pkg_resources.parse_version(MIN_DTLpy_VERSION):
+    if Version(current) < Version(MIN_DTLpy_VERSION):
         raise RuntimeError(
             f"dtlpy SDK version {current} is too old. "
             f"Minimum required version is {MIN_DTLpy_VERSION}. "
@@ -287,7 +287,7 @@ def main(config_path: str) -> None:
     """Main execution flow."""
     validate_dtlpy_version()
 
-    # Load configuration
+    # Load configuration    
     print(f"\n📂 Loading configuration from: {config_path}")
     cfg = load_config(config_path)
 
@@ -341,6 +341,7 @@ def main(config_path: str) -> None:
     print("✅ Setup completed successfully!")
     print(f"   Cluster: {cluster_name}")
     print(f"   Namespace: {namespace}")
+    print(f"   Compute ID: {compute.id}")
     print("=" * 50)
 
 

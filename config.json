@@ -47,7 +47,8 @@
 
   "plugins": [
     {"name": "monitoring"},
-    {"name": "scaler"}
+    {"name": "scaler"},
+    {"name": "fluentd"}
   ],
 
   "nodePools": [
