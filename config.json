@@ -11,7 +11,8 @@
     "endpoint": "{CLUSTER_ENDPOINT}",
     "kubernetesVersion": "{KUBERNETES_VERSION}",
     "provider": "aws",
-    "defaultNamespace": "{DEFAULT_NAMESPACE}"
+    "defaultNamespace": "{DEFAULT_NAMESPACE}",
+    "consumptionMethod": "{CONSUMPTION_METHOD}"
   },
 
   "authentication": {

@@ -140,7 +140,7 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "name": cluster["name"],
             "nodePools": cfg["nodePools"],
             "metadata": metadata,
-            "settings": {"defaultNamespace": cluster["defaultNamespace"]},
+            "settings": {"defaultNamespace": cluster["defaultNamespace"], "consumptionMethod": cluster["consumptionMethod"]},
             "deploymentConfiguration": {
                 "volumes": cfg.get("volumes", []),
                 "serviceAccountName": cluster.get("serviceAccountName", "faas"),
