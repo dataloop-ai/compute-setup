@@ -49,7 +49,9 @@ Before you begin, make sure you have:
 
 In most setups, Dataloop needs **namespace-scoped** permissions to create/update/delete and watch common workload resources (pods, services, deployments, jobs, HPA, configmaps/secrets, PVCs), and (optionally) do pod exec.
 
-**Minimal namespace-scoped RBAC example (Role + RoleBinding):**
+**Minimal namespace-scoped setup (Namespace, ServiceAccount, token Secret, Role, RoleBinding):**
+
+From Kubernetes 1.24 onward, ServiceAccounts no longer get a default auto-mounted token Secret. Create an explicit `kubernetes.io/service-account-token` Secret (same pattern as below) so you can read a stable JWT for `authentication.token` in your compute config.
 
 ```yaml
 apiVersion: v1
@@ -62,6 +64,15 @@ kind: ServiceAccount
 metadata:
   name: <SERVICE_ACCOUNT_NAME>
   namespace: <NAMESPACE>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: <SERVICE_ACCOUNT_NAME>
+  namespace: <NAMESPACE>
+  annotations:
+    kubernetes.io/service-account.name: <SERVICE_ACCOUNT_NAME>
+type: kubernetes.io/service-account-token
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -243,12 +254,13 @@ kubectl get secret <secret-name> -n <namespace> -o jsonpath='{.data.ca\.crt}'
 
 **How to get the service account token:**
 
-First, create a service account and secret (if not exists):
+First, ensure the namespace, ServiceAccount, and token Secret exist. The easiest path is to apply the full YAML in [ServiceAccount permissions (RBAC)](#serviceaccount-permissions-rbac) (replace placeholders, then `kubectl apply -f your-manifest.yaml`). Alternatively, create them manually:
+
 ```bash
 # Create service account
 kubectl create serviceaccount faas -n faas
 
-# Create a long-lived token secret
+# Create a long-lived token secret (1.24+)
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
