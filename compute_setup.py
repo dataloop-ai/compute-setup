@@ -129,6 +129,12 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
     registry_faas_folder = registry.get("faasFolder", "customerhub")
     registry_bootstrap_folder = registry.get("bootstrapFolder", "customerhub")
 
+    settings: Dict[str, Any] = {}
+    if cluster.get("defaultNamespace") is not None:
+        settings["defaultNamespace"] = cluster["defaultNamespace"]
+    if cluster.get("consumptionMethod") is not None:
+        settings["consumptionMethod"] = cluster["consumptionMethod"]
+
     config: Dict[str, Any] = {
         "authentication": {
             "ca": auth.get("ca", ""),
@@ -140,7 +146,7 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "name": cluster["name"],
             "nodePools": cfg["nodePools"],
             "metadata": metadata,
-            "settings": {"defaultNamespace": cluster["defaultNamespace"], "consumptionMethod": cluster["consumptionMethod"]},
+            "settings": settings,
             "deploymentConfiguration": {
                 "volumes": cfg.get("volumes", []),
                 "serviceAccountName": cluster.get("serviceAccountName", "faas"),
