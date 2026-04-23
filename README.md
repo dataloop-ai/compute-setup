@@ -319,6 +319,8 @@ This section is **optional** and is passed as-is into the compute `config.metada
 
 **Serve Agent (optional)**
 
+These fields describe how the **Dataloop platform** (and any other callers) reach the cluster’s **gateway (serve-agent)**, and which **in-cluster IP** bootstrap assigns to that gateway. The gateway is the entry point that forwards traffic to your **cluster applications** (FaaS, pipelines, etc.). You need both sides of this story: the **address the world (or the platform) uses** (`serveAgentEndpoint`) and the **IP the gateway is configured with inside the cluster** (`serveAgentIP`).
+
 ```json
 "metadata": {
   "serveAgentEndpoint": "{endpoint to reach the serve-agent}",
@@ -327,7 +329,26 @@ This section is **optional** and is passed as-is into the compute `config.metada
 }
 ```
 
-`serveAgentServiceType` supported values: `ClusterIP`, `LoadBalancer`.
+| Field | Role |
+|-------|------|
+| **`serveAgentEndpoint`** | How clients and the platform **address and send traffic** to the gateway: the hostname, URL, or IP (or internal path form, depending on your setup) that ultimately reaches the serve-agent. What is “exposed” to the outside world is often a **static external IP** or a **DNS name** bound to the gateway or to a load balancer in front of it. |
+| **`serveAgentIP`** | The **IP the gateway is deployed with** in the cluster. Traffic that hits `serveAgentEndpoint` is routed (via load balancer, DNS, or private networking) so it **reaches** this IP on the serve-agent. Bootstrap applies the serve-agent using this value. |
+| **`serveAgentServiceType`** | Kubernetes `Service` type for the serve-agent: `LoadBalancer` (typical when you need a cloud LB and a public or published front end) or `ClusterIP` (internal service only). Supported values: **`ClusterIP`**, **`LoadBalancer`**. |
+
+**Why two values?** In many deployments the **public** or **platform-facing** name/IP (`serveAgentEndpoint`) is not literally the same string as the **pod/service IP** in Kubernetes (`serveAgentIP`). A load balancer, ingress, or DNS record sits in between: users and the platform call the endpoint; the data path terminates on the gateway at `serveAgentIP` (or the LB forwards to it).
+
+**`ClusterIP` and using the same IP for both fields**
+
+You can set `serveAgentServiceType` to `ClusterIP` and use the **same** value for `serveAgentIP` and `serveAgentEndpoint` when that address is **reachable from the platform** over private networking (for example **on-prem**, **VPC peering**, **VPN**, or any path where the platform can route to a cluster-internal or private IP). In that case there is no separate public load balancer: connectivity must be guaranteed by your network design.
+
+**Traffic flow (conceptual)**
+
+Callers send HTTP(S) and app traffic to **`serveAgentEndpoint`** (how the address is named—DNS, public IP, or reachable private IP). That traffic is routed or forwarded to the **gateway serve-agent**, which uses **`serveAgentIP`** in the cluster, then on to **cluster applications**.
+
+![Traffic from Dataloop platform and users through serveAgentEndpoint to the gateway (serveAgentIP) and cluster applications](docs/assets/serve-agent-traffic-flow.png)
+
+- **Without** a public LB: the arrow from `serveAgentEndpoint` to the gateway is satisfied by private routing (peering, VPN, same network), often with `ClusterIP` and matching endpoint/IP as above.
+- **With** `LoadBalancer` + public DNS: `serveAgentEndpoint` is typically the **DNS name or static IP of the load balancer**; the cloud LB forwards to the service backing the gateway, which aligns with `serveAgentIP` as applied during bootstrap.
 
 ---
 
