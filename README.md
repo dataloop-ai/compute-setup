@@ -18,6 +18,7 @@ This guide explains how to configure the compute setup for your Kubernetes clust
    - [Network Settings](#6-network-settings)
    - [Volumes](#7-volumes)
    - [Plugins](#8-plugins)
+   - [Fluentd (optional)](#fluentd-optional)
    - [Storage driver (optional)](#storage-driver-optional)
    - [Node Pools](#9-node-pools)
    - [Default Resources](#10-default-resources)
@@ -502,6 +503,7 @@ The following plugins are supported. For Dataloop compute setup, **`monitoring`*
 |--------|-------------|-------------|
 | `monitoring` | Enables metrics and monitoring | ✅ Yes |
 | `scaler` | Enables auto-scaling of services | ✅ Yes |
+| `fluentd` | Deploys Fluentd for log collection and forwarding from compute workloads |
 
 **Minimal setup:**
 ```json
@@ -527,6 +529,20 @@ The following plugins are supported. For Dataloop compute setup, **`monitoring`*
 ]
 ```
 
+---
+
+### Fluentd (optional)
+
+The **fluentd** plugin enables Fluentd-based log shipping for your compute cluster. Add it to the `plugins` array when you want pod and platform logs collected and forwarded through Fluentd (in addition to the mandatory `monitoring` and `scaler` plugins).
+
+**Example:**
+```json
+"plugins": [
+  {"name": "monitoring"},
+  {"name": "scaler"},
+  {"name": "fluentd"}
+]
+```
 ---
 
 ### Storage driver (optional)
