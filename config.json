@@ -49,6 +49,7 @@
   "plugins": [
     {"name": "monitoring"},
     {"name": "scaler"},
+    {"name": "nginx-gateway"},
     {"name": "fluentd"}
   ],
 

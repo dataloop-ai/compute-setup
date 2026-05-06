@@ -503,7 +503,8 @@ The following plugins are supported. For Dataloop compute setup, **`monitoring`*
 |--------|-------------|-------------|
 | `monitoring` | Enables metrics and monitoring | ✅ Yes |
 | `scaler` | Enables auto-scaling of services | ✅ Yes |
-| `fluentd` | Deploys Fluentd for log collection and forwarding from compute workloads |
+| `nginx-gateway` | Deploys nginx-gateway for ingress and routing (optional, included by default) | No |
+| `fluentd` | Deploys Fluentd for log collection and forwarding from compute workloads | No |
 
 **Minimal setup:**
 ```json
@@ -664,6 +665,29 @@ The **storage driver** plugin integrates user storage that lives in your compute
     { "name": "pvc-share", "type": "pvc", "config": { "storageClass": "fast", "storageSize": "100Gi" } }
   ]
 }
+```
+
+---
+
+### nginx-gateway (optional)
+
+The **nginx-gateway** plugin deploys an nginx-based ingress controller for routing external traffic to your compute workloads. It is included by default in the configuration but can be removed if not needed.
+
+**Example:**
+```json
+"plugins": [
+  {"name": "monitoring"},
+  {"name": "scaler"},
+  {"name": "nginx-gateway"}
+]
+```
+
+**To remove nginx-gateway**, simply omit it from the plugins array:
+```json
+"plugins": [
+  {"name": "monitoring"},
+  {"name": "scaler"}
+]
 ```
 
 ---
@@ -928,7 +952,8 @@ Before running the script, verify:
   "volumes": [],
   "plugins": [
     {"name": "monitoring"},
-    {"name": "scaler"}
+    {"name": "scaler"},
+    {"name": "nginx-gateway"}
   ],
   "nodePools": [
     {
