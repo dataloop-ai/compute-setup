@@ -19,7 +19,7 @@ This guide explains how to configure the compute setup for your Kubernetes clust
    - [Volumes](#7-volumes)
    - [Plugins](#8-plugins)
    - [Fluentd (optional)](#fluentd-optional)
-   - [Storage driver (optional)](#storage-driver-optional)
+   - [Storage integrations (optional)](#storage-integrations-optional)
    - [Node Pools](#9-node-pools)
    - [Default Resources](#10-default-resources)
    - [Security Context](#11-security-context)
@@ -546,27 +546,20 @@ The **fluentd** plugin enables Fluentd-based log shipping for your compute clust
 ```
 ---
 
-### Storage driver (optional)
+### Storage integrations (optional)
 
-The **storage driver** plugin integrates user storage that lives in your compute (e.g. NFS, PVC, or S3) with the platform. Add it to the `plugins` array when you want workloads to use storage that is located in the cluster you are registering.
+The **storage-integrations** plugin connects storage **integrations** (defined in the Dataloop console/SDK) to your compute, so workloads and the serve-agent streamer can read/write that storage. Each entry in `storages` is an object with a single **`integrationId`** field — Piper resolves the concrete storage details (type, endpoint, region, bucket, host, path, credentials) from the integration (and its Vault secret for S3) at bootstrap time.
 
 ```json
 "plugins": [
   {"name": "monitoring"},
   {"name": "scaler"},
   {
-    "name": "storage-driver",
+    "name": "storage-integrations",
     "config": {
       "storages": [
-        {
-          "name": "my-nfs-storage",
-          "type": "nfs",
-          "config": {
-            "server": "192.168.1.100",
-            "path": "/exports/project",
-            "mountPath": "/mnt/nfs-data"
-          }
-        }
+        {"integrationId": "integrationId1"},
+        {"integrationId": "integrationId2"}
       ]
     }
   }
@@ -575,94 +568,43 @@ The **storage driver** plugin integrates user storage that lives in your compute
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `config.storages` | ✅ Yes | List of storage definitions (NFS, PVC, or S3) |
-| `storages[].name` | ✅ Yes | Unique name for the storage |
-| `storages[].type` | ✅ Yes | Storage type: `nfs`, `pvc`, or `s3` |
-| `storages[].config` | ✅ Yes | Type-specific configuration (see below) |
+| `config.storages` | ✅ Yes | Array of objects, each with a single **`integrationId`** field. Only **one storage per integrationId** is allowed. No other fields are set on the compute. |
 
-**NFS storage** — use when your data is on an NFS server reachable from the cluster:
+**Supported integration types:** `s3` (and S3-compatible), `nfs`, `hostPath`.
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `server` | ✅ Yes | NFS server host (IP or hostname) |
-| `path` | ✅ Yes | Export path on the NFS server |
-| `mountPath` | ✅ Yes | Path where the share is mounted inside the serve-agent container (required for streamer driver) |
+- **S3** — credentials come from the integration's Vault secret. The **bucket/region/endpoint are provided at request time** by Rubiks (in the signed stream token); they are **not** stored in the serve-agent deployment.
+- **NFS** — the integration holds `serverAddress` and `exportPath`. Piper mounts it in the serve-agent container at `/mnt/streamer/<integrationId>`.
+- **HostPath** — the integration holds `path` (and optional `type`, `readOnly`). Piper mounts it at `/mnt/streamer/<integrationId>`.
 
-**Example: NFS storage**
+Create the integration first (console or SDK), then reference its ID in `storages`. The serve-agent streamer driver is keyed by the integrationId, and Rubiks routes/queries by integrationId.
+
+**Example: NFS integration definition** (created in the console/SDK — reference its `id` in `storages`):
 ```json
 {
-  "name": "project-nfs",
   "type": "nfs",
-  "config": {
-    "server": "nfs.example.com",
-    "path": "/exports/dataloop",
-    "mountPath": "/mnt/nfs-dataloop"
-  }
+  "name": "project-nfs",
+  "options": { "serverAddress": "nfs.example.com", "exportPath": "/exports/dataloop" }
 }
 ```
 
-**PVC storage** — use for dynamically provisioned PersistentVolumeClaims in the cluster:
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `storageClass` | ✅ Yes | Kubernetes StorageClass name |
-| `storageSize` | ✅ Yes | Size of the volume (e.g. `10Gi`, `100Gi`) |
-
-**Example: PVC storage**
+**Example: HostPath integration definition:**
 ```json
 {
-  "name": "project-pvc",
-  "type": "pvc",
-  "config": {
-    "storageClass": "standard",
-    "storageSize": "50Gi"
-  }
+  "type": "hostPath",
+  "name": "project-hostpath",
+  "options": { "path": "/data/host", "type": "Directory", "readOnly": false }
 }
 ```
 
-**S3 storage** — use for object storage (e.g. AWS S3, MinIO) via a Dataloop integration:
+**Example: S3** — create an S3 integration in the console (it holds the credentials in Vault), then reference its `id`. No bucket/region/endpoint is set on the compute; those are supplied per request.
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `integrationId` | ✅ Yes | Dataloop integration ID for S3 credentials |
-| `bucket` | ✅ Yes | Bucket name |
-| `region` | ✅ Yes | Region (e.g. `us-east-1`) |
-| `endpoint` | No | Custom endpoint URL (e.g. for MinIO or S3-compatible storage) |
-
-**Example: S3 storage**
-```json
-{
-  "name": "project-s3",
-  "type": "s3",
-  "config": {
-    "integrationId": "integration-id-from-console",
-    "bucket": "my-dataloop-bucket",
-    "region": "us-east-1"
-  }
-}
-```
-
-**Example: S3 with custom endpoint (e.g. MinIO)**
-```json
-{
-  "name": "minio-storage",
-  "type": "s3",
-  "config": {
-    "integrationId": "integration-id-from-console",
-    "bucket": "my-bucket",
-    "region": "us-east-1",
-    "endpoint": "https://minio.mycompany.com"
-  }
-}
-```
-
-**Multiple storages:** you can define several storages in one plugin; each must have a unique `name`.
+**Multiple storages:** list several integrationIds in one plugin (each must be unique):
 
 ```json
 "config": {
   "storages": [
-    { "name": "nfs-share", "type": "nfs", "config": { "server": "10.0.0.1", "path": "/data", "mountPath": "/mnt/nfs" } },
-    { "name": "pvc-share", "type": "pvc", "config": { "storageClass": "fast", "storageSize": "100Gi" } }
+    {"integrationId": "64f00000000000000000aaaa"},
+    {"integrationId": "64f00000000000000000bbbb"}
   ]
 }
 ```
