@@ -573,8 +573,8 @@ The **storage-integrations** plugin connects storage **integrations** (defined i
 **Supported integration types:** `s3` (and S3-compatible), `nfs`, `hostPath`.
 
 - **S3** — credentials come from the integration's Vault secret. The **bucket/region/endpoint are provided at request time** by Rubiks (in the signed stream token); they are **not** stored in the serve-agent deployment.
-- **NFS** — the integration holds `serverAddress` and `exportPath`. Piper mounts it in the serve-agent container at `/mnt/streamer/<integrationId>`.
-- **HostPath** — the integration holds `path` (and optional `type`, `readOnly`). Piper mounts it at `/mnt/streamer/<integrationId>`.
+- **NFS** — the integration holds `server` and `path` in its **`metadata`** (no Vault secret). Piper mounts it in the serve-agent container at `/mnt/streamer/<integrationId>`.
+- **HostPath** — the integration holds `path` in its **`metadata`** (plus optional `type`, default `Directory`, and `readOnly`, default `false`); no Vault secret. Piper mounts it at `/mnt/streamer/<integrationId>`.
 
 Create the integration first (console or SDK), then reference its ID in `storages`. The serve-agent streamer driver is keyed by the integrationId, and Rubiks routes/queries by integrationId.
 
@@ -583,18 +583,22 @@ Create the integration first (console or SDK), then reference its ID in `storage
 {
   "type": "nfs",
   "name": "project-nfs",
-  "options": { "serverAddress": "nfs.example.com", "exportPath": "/exports/dataloop" }
+  "options": {},
+  "metadata": { "server": "nfs.example.com", "path": "/exports/dataloop" }
 }
 ```
+Required `metadata`: `server`, `path`. Optional: `provider`, `authMethod`.
 
 **Example: HostPath integration definition:**
 ```json
 {
   "type": "hostPath",
   "name": "project-hostpath",
-  "options": { "path": "/data/host", "type": "Directory", "readOnly": false }
+  "options": {},
+  "metadata": { "path": "/data/host", "type": "Directory", "readOnly": false }
 }
 ```
+Required `metadata`: `path`. Optional: `type` (default `Directory`), `readOnly` (default `false`), `provider`, `authMethod`.
 
 **Example: S3** — create an S3 integration in the console (it holds the credentials in Vault), then reference its `id`. No bucket/region/endpoint is set on the compute; those are supplied per request.
 
