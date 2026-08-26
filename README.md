@@ -317,7 +317,7 @@ This section is **optional**. If omitted, defaults are used.
 
 This section is **optional** and is passed as-is into the compute `config.metadata`.
 
-**Serve Agent (optional)**
+**Serve Agent (optional, but strongly recommended for hybrid clusters)**
 
 ```json
 "metadata": {
@@ -328,6 +328,14 @@ This section is **optional** and is passed as-is into the compute `config.metada
 ```
 
 `serveAgentServiceType` supported values: `ClusterIP`, `LoadBalancer`.
+
+> **Without a static `serveAgentIP` or a stable `serveAgentEndpoint` (DNS), Dataloop cannot
+> reliably reach the serve-agent from outside your cluster.** This breaks or destabilizes
+> app/panel UIs, model serving endpoints, and storage streaming for any compute that relies on
+> them. If neither field is set, serve-agent typically falls back to a `ClusterIP` (or an
+> ephemeral `LoadBalancer` IP that can change), which is only reachable from within the cluster.
+> Set `serveAgentIP` (a static IP you own/reserve) or `serveAgentEndpoint` (a DNS name you
+> control) so the address Dataloop uses stays stable across redeploys.
 
 ---
 
