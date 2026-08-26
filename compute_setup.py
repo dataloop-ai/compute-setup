@@ -149,7 +149,7 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "settings": settings,
             "deploymentConfiguration": {
                 "volumes": cfg.get("volumes", []),
-                "serviceAccountName": cluster.get("serviceAccountName", "faas"),
+                "serviceAccountName": cluster.get("serviceAccountName"),
                 "securityContext": cfg.get("securityContext", {}),
                 "registry": {
                     "domain": registry_domain,
@@ -161,7 +161,7 @@ def build_compute_config(cfg: Dict[str, Any]) -> Dict[str, Any]:
                 "environmentVariables": network.get("environmentVariables", []),
             },
             "plugins": cfg.get("plugins", []),
-            "provider": cluster["provider"],
+            "provider": cluster["provider"]
         },
     }
     return config
