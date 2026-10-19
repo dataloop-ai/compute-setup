@@ -678,6 +678,7 @@ The **nginx-gateway** plugin deploys an nginx-based ingress controller for routi
 |----------|--------|-------------|
 | CPU Regular | `regular-xs`, `regular-s`, `regular-m`, `regular-l` | Standard CPU instances |
 | CPU High Memory | `highmem-xs`, `highmem-s`, `highmem-m`, `highmem-l` | High memory instances |
+| CPU High CPU | `highcpu-xs` | High CPU instances |
 | GPU T4 | `gpu-t4`, `gpu-t4-m` | NVIDIA T4 GPU instances |
 | GPU A100 | `gpu-a100-s`, `gpu-a100-4g`, `gpu-a100-4g-m` | NVIDIA A100 GPU instances |
 

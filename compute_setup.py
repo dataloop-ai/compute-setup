@@ -231,6 +231,7 @@ def validate_config(cfg: Dict[str, Any], compute_cfg: Dict[str, Any]) -> None:
     allowed_dl_types = {
         "regular-xs", "regular-s", "regular-m", "regular-l",
         "highmem-xs", "highmem-s", "highmem-m", "highmem-l",
+        "highcpu-xs",
         "gpu-t4", "gpu-t4-m",
         "gpu-a100-s", "gpu-a100-4g", "gpu-a100-4g-m",
     }
