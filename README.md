@@ -202,6 +202,7 @@ subjects:
 | `provider` | ✅ Yes | Cloud provider | `aws`, `gcp`, or `azure` |
 | `defaultNamespace` | ✅ Yes | Namespace for FaaS workloads | Usually `faas` - must exist in your cluster |
 | `serviceAccountName` | No | Service account for pods | Defaults to `faas` (must exist in the namespace) |
+| `consumptionMethod` | No | How the compute consumes work. Options: `MQ` (default) or `API`. Not required — if omitted or empty, `MQ` is used | Leave out for `MQ`, or set `"consumptionMethod": "API"` |
 
 **How to find your cluster endpoint:**
 
