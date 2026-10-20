@@ -190,9 +190,12 @@ subjects:
   "endpoint": "https://ABC123.gr7.us-east-1.eks.amazonaws.com",
   "kubernetesVersion": "1.29",
   "provider": "aws",
-  "defaultNamespace": "faas"
+  "defaultNamespace": "faas",
+  "consumptionMethod": "MQ"
 }
 ```
+
+> `consumptionMethod` is **optional** (`MQ` or `API`, defaults to `MQ`) — you can remove it from your config.
 
 | Field | Required | Description | How to Find |
 |-------|----------|-------------|-------------|
